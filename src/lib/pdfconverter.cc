@@ -926,6 +926,14 @@ void PdfConverterPrivate::beginPrintObject(PageObject & obj) {
 		 i != obj.externalLinks.end(); ++i)
 		pageExternalLinks[webPrinter->elementLocation(i->first).first].push_back(*i);
 
+    int i = 0;
+    foreach (const QWebElement & elm, obj.page->mainFrame()->findAllElements("img")) {
+        bool hasTitle = elm.hasAttribute("src");
+        qWarning() << "found image! title? " << hasTitle;
+        if (hasTitle)
+            painter->addImageTitle(i++, elm.attribute("src") );
+    }
+
 	if (ps.produceForms) {
 		foreach (const QWebElement & elm, obj.page->mainFrame()->findAllElements("input"))
 			pageFormElements[webPrinter->elementLocation(elm).first].push_back(elm);
