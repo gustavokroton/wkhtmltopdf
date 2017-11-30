@@ -161,7 +161,7 @@ LINUX_SCHROOT_SETUP = {
     'generic': {
         'title'             : 'Generic (based on CentOS 6)',
         'packaging_tool'    : 'yum',
-        'build_arch'        : ['amd64', 'i386'],
+        'build_arch'        : ['amd64'],
         'compression'       : 'bzip2',
         'wrapper_command'   : 'scl enable devtoolset-3 python27 git19 -- ',
         'runtime_packages'  : 'glibc libstdc++ zlib openssl freetype fontconfig '\
@@ -425,7 +425,9 @@ def silent_shell(cmd):
 def chroot_shell(name, cmd):
     distro  = get_chroot_list().get(name)
     wrapper = LINUX_SCHROOT_SETUP.get(distro, {}).get('wrapper_command', '')
-    ret = os.system('schroot -c wkhtmltox-%s -- %s%s ' % (name, wrapper, cmd))
+    cmd = 'schroot -c wkhtmltox-%s -- %s%s ' % (name, wrapper, cmd)
+    message("Executing: %s\n" % cmd)
+    ret = os.system(cmd)
     if ret != 0:
         error("command inside chroot failed: exit code %d" % ret)
 
@@ -882,7 +884,9 @@ def check_linux_generic(config):
 
 def build_linux_generic(config, basedir):
     chroot_env = ('amd64' in config) and 'generic-amd64' or 'generic-i386'
-    os.chdir(os.path.realpath(os.path.join(basedir, '..')))
+    proj_path = os.path.realpath(os.path.join(basedir, '..'))
+    message("Changing to: %s\n" % proj_path) 
+    os.chdir(proj_path)
     chroot_shell(chroot_env, 'python scripts/build.py %s -chroot-build' % ' '.join(sys.argv[1:]))
 
     if config.endswith('-dbg'):
